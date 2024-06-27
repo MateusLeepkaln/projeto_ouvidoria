@@ -4,79 +4,95 @@ require("inc/conexao.php");
 
 session_start();
 
-function sanitizeInput($data) {
-    return htmlspecialchars(trim($data));
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    function sanitizeInput($data) {
+        return htmlspecialchars(trim($data));
 }
 
-$nome = ucfirst(sanitizeInput($_POST["nome"]));
-$email = filter_var(sanitizeInput($_POST["email"]), FILTER_VALIDATE_EMAIL);
-$senha = md5(sanitizeInput($_POST["senha"]));
-$confirmacao_senha = md5(sanitizeInput($_POST["confirmacao_senha"]));
-$data_nascimento = sanitizeInput($_POST["data_nascimento"]);
-$telefone = sanitizeInput($_POST["telefone"]);
-$whatsapp = sanitizeInput($_POST["whatsapp"]);
-$cidade = sanitizeInput($_POST["cidade"]);
-$estado = sanitizeInput($_POST["estado"]);
+    $data_nascimento = sanitizeInput($_POST["data_nascimento"]);
 
-if (!$email) {
-    die("E-mail inválido");
-}
+    function calcularIdade($data_nascimento){
+        date_default_timezone_set('America/Sao_Paulo'); 
+        $dataAtual = new DateTime();
+        $nascimento = new DateTime($data_nascimento);
+        $idade = $dataAtual->diff($nascimento)->y;
+        return $idade;
+    }
 
-if ($senha !== $confirmacao_senha) {
-    die("As senhas não coincidem");
-}
+    $idade = calcularIdade($data_nascimento);
 
-// Verifica se já existe um usuário com este e-mail
-$sqlVerificaCadastro = "SELECT `email` FROM usuario WHERE `email` = ?";
-$stmt = mysqli_prepare($conn, $sqlVerificaCadastro);
+    if ($idade < 18) {
+        die("Você precisa ter pelo menos 18 anos para usar a ouvidoria.");
+    }
 
-if (!$stmt) {
-    die("Erro ao preparar a consulta: " . mysqli_error($conn));
-}
+    $nome = ucfirst(sanitizeInput($_POST["nome"]));
+    $email = filter_var(sanitizeInput($_POST["email"]), FILTER_VALIDATE_EMAIL);
+    $senha = md5(sanitizeInput($_POST["senha"]));
+    $confirmacao_senha = md5(sanitizeInput($_POST["confirmacao_senha"]));
+    $telefone = sanitizeInput($_POST["telefone"]);
+    $whatsapp = sanitizeInput($_POST["whatsapp"]);
+    $cidade = sanitizeInput($_POST["cidade"]);
+    $estado = sanitizeInput($_POST["estado"]);
 
-mysqli_stmt_bind_param($stmt, "s", $email);
-mysqli_stmt_execute($stmt);
-$resultadoVerificaCadastro = mysqli_stmt_get_result($stmt);
+    if (!$email) {
+        die("E-mail inválido");
+    }
 
-$qtdLinhas = mysqli_num_rows($resultadoVerificaCadastro);
+    if ($senha !== $confirmacao_senha) {
+        die("As senhas não coincidem");
+    }
 
-if ($qtdLinhas > 0) {
-    echo "<style>#carregando{display:none;}</style>
-    <div class='alert alert-danger' role='alert'>Já existe um cadastro com esse e-mail ($email)</div>
-    <br>
-    <a class='btn btn-primary' href='cadastro.php' role='button'>Voltar</a>
-    ";
-} else {
-    $hash = sprintf('%07x', mt_rand(0, 0xFFFFFFF));
-    $sqlCadastroUsuario = "INSERT INTO usuario (nome, data_nascimento, email, telefone, whatsapp, senha, confirmacao_senha, cidade, estado, hash, cadastro, ativacao, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NULL, 'pendente')";
-
-    $stmt = mysqli_prepare($conn, $sqlCadastroUsuario);
+    // Verifica se já existe um usuário com este e-mail
+    $sqlVerificaCadastro = "SELECT `email` FROM usuario WHERE `email` = ?";
+    $stmt = mysqli_prepare($conn, $sqlVerificaCadastro);
 
     if (!$stmt) {
-        die("Erro ao preparar a consulta de cadastro: " . mysqli_error($conn));
+        die("Erro ao preparar a consulta: " . mysqli_error($conn));
     }
 
-    mysqli_stmt_bind_param($stmt, "ssssssssss", $nome, $data_nascimento, $email, $telefone, $whatsapp, $senha, $confirmacao_senha, $cidade, $estado, $hash);
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+    $resultadoVerificaCadastro = mysqli_stmt_get_result($stmt);
 
-    if (mysqli_stmt_execute($stmt)) {
-        enviarEmailVerificacao($email, $hash);
+    $qtdLinhas = mysqli_num_rows($resultadoVerificaCadastro);
 
+    if ($qtdLinhas > 0) {
         echo "<style>#carregando{display:none;}</style>
-        <div class='alert alert-success' role='alert'>Cadastro realizado com sucesso! Verifique seu e-mail para ativar sua conta.</div>
+        <div class='alert alert-danger' role='alert'>Já existe um cadastro com esse e-mail ($email)</div>
         <br>
-        <a class='btn btn-primary' href='login.php' role='button'>Ir para o login</a>
-        ";
+        <a class='btn btn-primary' href='cadastro.php' role='button'>Voltar</a>";
     } else {
-        echo "<style>#carregando{display:none;}</style>
-        <div class='alert alert-danger' role='alert'>Erro ao realizar o cadastro: " . mysqli_error($conn) . "</div>
-        <br>
-        <a class='btn btn-primary' href='cadastro.php' role='button'>Voltar</a>
-        ";
+        $hash = sprintf('%07x', mt_rand(0, 0xFFFFFFF));
+        $sqlCadastroUsuario = "INSERT INTO usuario (nome, data_nascimento, email, telefone, whatsapp, senha, confirmacao_senha, cidade, estado, hash, cadastro, ativacao, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NULL, 'pendente')";
+
+        $stmt = mysqli_prepare($conn, $sqlCadastroUsuario);
+
+        if (!$stmt) {
+            die("Erro ao preparar a consulta de cadastro: " . mysqli_error($conn));
+        }
+
+        mysqli_stmt_bind_param($stmt, "ssssssssss", $nome, $data_nascimento, $email, $telefone, $whatsapp, $senha, $confirmacao_senha, $cidade, $estado, $hash);
+
+        if (mysqli_stmt_execute($stmt)) {
+            enviarEmailVerificacao($email, $hash);
+
+            echo "<style>#carregando{display:none;}</style>
+            <div class='alert alert-success' role='alert'>Cadastro realizado com sucesso! Verifique seu e-mail para ativar sua conta.</div>
+            <br>
+            <a class='btn btn-primary' href='login.php' role='button'>Ir para o login</a>
+            ";
+        } else {
+            echo "<style>#carregando{display:none;}</style>
+            <div class='alert alert-danger' role='alert'>Erro ao realizar o cadastro: " . mysqli_error($conn) . "</div>
+            <br>
+            <a class='btn btn-primary' href='cadastro.php' role='button'>Voltar</a>
+            ";
+        }
     }
 }
-
 mysqli_close($conn);
+
 
 function enviarEmailVerificacao($email, $token) {
     $mail = new PHPMailer(true);

@@ -7,6 +7,8 @@
   <title>Ouvidoria</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
 </head>
 
 <body>
@@ -21,7 +23,7 @@
         </div>
         <div class="form-group">
           <label>E-mail</label>
-          <input type="email" class="form-control" name="email" id="email" required>
+          <input type="email" class="form-control" name="email" id="email" autocomplete="email" required>
         </div>
         <div class="form-group">
           <label>Senha</label>
@@ -37,11 +39,11 @@
         </div>
         <div class="form-group">
           <label>Telefone</label>
-          <input type="tel" class="form-control" name="telefone" id="telefone" required placeholder="(xx) xxxxx-xxxx">
+          <input type="tel" class="form-control" name="telefone" id="telefone" required>
         </div>
         <div class="form-group">
           <label>WhatsApp</label>
-          <input type="tel" class="form-control" name="whatsapp" id="whatsapp" required placeholder="(xx) xxxxx-xxxx">
+          <input type="tel" class="form-control" name="whatsapp" id="whatsapp" required>
         </div>
         <div class="form-group">
           <label>Cidade</label>
@@ -50,8 +52,8 @@
         <div class="form-group">
           <label for="estado">Estado</label>
           <select name="estado" id="estado" class="form-control" required>
-          <option value="">Selecione o Estado</option>  
-          <option value="AC">Acre</option>
+            <option value="">Selecione o Estado</option>  
+            <option value="AC">Acre</option>
             <option value="AL">Alagoas</option>
             <option value="AP">Amapá</option>
             <option value="AM">Amazonas</option>
@@ -78,7 +80,7 @@
             <option value="SP">São Paulo</option>
             <option value="SE">Sergipe</option>
             <option value="TO">Tocantins</option>
-            </select>
+          </select>
         </div>
         <br>
         <div class="form-group">
@@ -93,9 +95,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-
   <script type="text/javascript">
+    $(document).ready(function () {
+      $('#telefone').mask('(00) 0000-0000');
+      $('#whatsapp').mask('(00) 00000-0000');
+    });
+
     $("#cadastrar").click(function () {
       if (
         $("#nome").val().length != 0 &&

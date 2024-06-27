@@ -27,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION['user_name'] = $user['nome'];
                 error_log("Login successful for user: " . $user['nome']); // Log de sucesso de login
 
-                // Verifique se não há saída antes deste ponto
                 if (headers_sent()) {
                     error_log("Headers already sent, cannot redirect.");
                     echo "<script>window.location.href = 'ouvidoria.php';</script>";
